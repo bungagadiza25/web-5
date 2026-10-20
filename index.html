@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTrack - Dashboard Sampah Kampus</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f6f3;
+            color: #263b30;
+        }
+
+        header {
+            background: #206b4a;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header p {
+            color: #e0f2e6;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 25px auto;
+            padding: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px #0000000c;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat {
+            background: #e8f4ec;
+            padding: 16px;
+            border-radius: 9px;
+        }
+
+        .stat p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 24px;
+            margin-top: 9px;
+            color: #206b4a;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: 1px solid #cbd7ce;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #4b9b70;
+            outline-offset: 1px;
+        }
+
+        button {
+            background: #206b4a;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 18px;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #174d35;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 90px 1fr 70px;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .track {
+            background: #e9eee9;
+            height: 24px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            width: 0;
+            background: #4a9c70;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        .chart-value {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .message {
+            background: #edf7f0;
+            padding: 12px;
+            border-radius: 7px;
+            margin-top: 15px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e1e8e2;
+        }
+
+        th {
+            background: #edf4ef;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #617267;
+        }
+
+        @media (max-width: 550px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-row {
+                grid-template-columns: 75px 1fr 58px;
+                gap: 6px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>EcoTrack</h1>
+    <p>Dashboard Pengelolaan Sampah Kampus</p>
+    <small>Catat, pantau, dan pahami data sampah</small>
+</header>
+
+<main>
+
+    <section class="card">
+        <h2>Ringkasan Data</h2>
+
+        <div class="summary">
+            <div class="stat">
+                <p>Total Sampah</p>
+                <strong id="total">0 kg</strong>
+            </div>
+
+            <div class="stat">
+                <p>Jumlah Catatan</p>
+                <strong id="jumlah">0</strong>
+            </div>
+
+            <div class="stat">
+                <p>Sampah Terbanyak</p>
+                <strong id="terbanyak">-</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Tambah Data Sampah</h2>
+        <p>
+            Masukkan jenis dan berat sampah yang ditemukan
+            di lingkungan kampus.
+        </p>
+
+        <form id="formSampah">
+            <label for="kategori">Jenis Sampah</label>
+            <select id="kategori" required>
+                <option value="Organik">Organik</option>
+                <option value="Plastik">Plastik</option>
+                <option value="Kertas">Kertas</option>
+                <option value="Logam">Logam</option>
+            </select>
+
+            <label for="berat">Berat Sampah (kg)</label>
+            <input
+                type="number"
+                id="berat"
+                min="0.1"
+                max="10000"
+                step="0.1"
+                placeholder="Contoh: 2.5"
+                required
+            >
+
+            <button type="submit">Tambah Data</button>
+        </form>
+
+        <div class="message" id="pesan" aria-live="polite">
+            Silakan isi formulir untuk menambahkan data.
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Grafik Berat Sampah</h2>
+        <p>
+            Grafik menunjukkan total berat untuk setiap kategori.
+        </p>
+
+        <div id="grafik"></div>
+    </section>
+
+    <section class="card">
+        <h2>Riwayat Pencatatan</h2>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Jenis Sampah</th>
+                        <th>Berat</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tabel"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Manfaat Visualisasi Data</h2>
+        <p>
+            Grafik membantu pengguna membandingkan jenis sampah
+            tanpa harus menghitung seluruh angka secara manual.
+            Ringkasan data juga memudahkan pengguna mengetahui
+            kategori sampah yang perlu mendapat perhatian.
+        </p>
+    </section>
+
+</main>
+
+<footer>
+    Studi Kasus Informatika | EcoTrack
+</footer>
+
+<script>
+    const dataSampah = [
+        { kategori: "Organik", berat: 12.5 },
+        { kategori: "Plastik", berat: 8.0 },
+        { kategori: "Kertas", berat: 5.5 },
+        { kategori: "Logam", berat: 2.0 }
+    ];
+
+    const kategoriSampah = [
+        "Organik", "Plastik", "Kertas", "Logam"
+    ];
+
+    const form = document.getElementById("formSampah");
+
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const kategori =
+            document.getElementById("kategori").value;
+
+        const berat =
+            Number(document.getElementById("berat").value);
+
+        const pesan = document.getElementById("pesan");
+
+        if (!Number.isFinite(berat) ||
+            berat < 0.1 || berat > 10000) {
+            pesan.textContent =
+                "Masukkan berat antara 0,1 hingga 10.000 kg.";
+            return;
+        }
+
+        dataSampah.push({
+            kategori: kategori,
+            berat: berat
+        });
+
+        document.getElementById("berat").value = "";
+
+        pesan.textContent =
+            "Data " + kategori + " berhasil ditambahkan.";
+
+        perbaruiDashboard();
+    });
+
+    function perbaruiDashboard() {
+        const total = dataSampah.reduce(
+            (jumlah, item) => jumlah + item.berat, 0
+        );
+
+        const rekap = {};
+
+        kategoriSampah.forEach(kategori => {
+            rekap[kategori] = 0;
+        });
+
+        dataSampah.forEach(item => {
+            rekap[item.kategori] += item.berat;
+        });
+
+        const terbesar = kategoriSampah.reduce(
+            (a, b) => rekap[a] >= rekap[b] ? a : b
+        );
+
+        document.getElementById("total").textContent =
+            total.toFixed(1) + " kg";
+
+        document.getElementById("jumlah").textContent =
+            dataSampah.length;
+
+        document.getElementById("terbanyak").textContent =
+            terbesar;
+
+        tampilkanGrafik(rekap);
+        tampilkanTabel();
+    }
+
+    function tampilkanGrafik(rekap) {
+        const grafik = document.getElementById("grafik");
+        grafik.replaceChildren();
+
+        const nilaiMaksimum = Math.max(
+            ...kategoriSampah.map(k => rekap[k]),
+            1
+        );
+
+        kategoriSampah.forEach(kategori => {
+            const baris = document.createElement("div");
+            baris.className = "chart-row";
+
+            const nama = document.createElement("span");
+            nama.textContent = kategori;
+
+            const track = document.createElement("div");
+            track.className = "track";
+
+            const bar = document.createElement("div");
+            bar.className = "bar";
+
+            bar.style.width =
+                (rekap[kategori] / nilaiMaksimum * 100) + "%";
+
+            track.appendChild(bar);
+
+            const nilai = document.createElement("span");
+            nilai.className = "chart-value";
+            nilai.textContent = rekap[kategori].toFixed(1) + " kg";
+
+            baris.append(nama, track, nilai);
+            grafik.appendChild(baris);
+        });
+    }
+
+    function tampilkanTabel() {
+        const tabel = document.getElementById("tabel");
+        tabel.replaceChildren();
+
+        dataSampah.forEach((item, indeks) => {
+            const baris = document.createElement("tr");
+
+            [indeks + 1, item.kategori,
+             item.berat.toFixed(1) + " kg"].forEach(teks => {
+                const sel = document.createElement("td");
+                sel.textContent = teks;
+                baris.appendChild(sel);
+            });
+
+            tabel.appendChild(baris);
+        });
+    }
+
+    perbaruiDashboard();
+</script>
+
+</body>
+</html>
